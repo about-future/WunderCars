@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context="com.aboutfuture.wundercars.MainActivity">
+
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/locations_rv"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="visible"/>
+
+    <ProgressBar
+        android:id="@+id/locations_progress_bar"
+        android:layout_width="@dimen/icon"
+        android:layout_height="@dimen/icon"
+        android:layout_gravity="center"
+        android:visibility="gone" />
+
+    <ImageView
+        android:id="@+id/locations_no_connection_cloud"
+        android:layout_width="@dimen/icon"
+        android:layout_height="@dimen/icon"
+        android:layout_gravity="center"
+        android:layout_marginBottom="@dimen/spacing"
+        android:contentDescription="@string/no_connection_icon"
+        android:visibility="invisible"
+        app:srcCompat="@drawable/ic_cloud_off" />
+
+    <TextView
+        android:id="@+id/locations_no_connection_message"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginTop="40dp"
+        android:fontFamily="sans-serif-condensed"
+        android:gravity="center"
+        android:text="@string/no_internet"
+        android:textSize="@dimen/body_text_size"
+        android:visibility="invisible" />
+
+</FrameLayout>

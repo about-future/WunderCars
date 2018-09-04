@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_margin="16dp"
+    android:layout_height="wrap_content">
+
+    <TextView
+        android:id="@+id/car_address"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:ellipsize="end"
+        android:fontFamily="sans-serif"
+        android:textSize="20sp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:text="Lesserstraße 170, 22049 Hamburg" />
+
+    <!--<android.support.constraint.ConstraintLayout-->
+        <!--android:layout_width="match_parent"-->
+        <!--android:layout_height="wrap_content"-->
+        <!--app:layout_constraintStart_toStartOf="@id/car_address"-->
+        <!--app:layout_constraintTop_toBottomOf="@+id/car_address">-->
+
+        <!--<TextView-->
+            <!--android:id="@+id/car_engine_label"-->
+            <!--android:layout_width="wrap_content"-->
+            <!--android:layout_height="wrap_content"-->
+            <!--android:fontFamily="sans-serif"-->
+            <!--android:textSize="14sp"-->
+            <!--tools:text="Engine Type" />-->
+
+        <!--<TextView-->
+            <!--android:id="@+id/car_engine"-->
+            <!--android:layout_width="0dp"-->
+            <!--android:layout_height="wrap_content"-->
+            <!--android:fontFamily="sans-serif"-->
+            <!--android:textSize="14sp"-->
+            <!--app:layout_constraintEnd_toEndOf="@id/car_engine_label"-->
+            <!--app:layout_constraintStart_toStartOf="@id/car_engine_label"-->
+            <!--app:layout_constraintTop_toBottomOf="@+id/car_engine_label"-->
+            <!--tools:text="CE" />-->
+
+        <!---->
+
+    <!--</android.support.constraint.ConstraintLayout>-->
+
+</android.support.constraint.ConstraintLayout>
