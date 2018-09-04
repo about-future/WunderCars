@@ -37,6 +37,14 @@ public class LocationsAdapter extends RecyclerView.Adapter<LocationsAdapter.View
     @Override
     public void onBindViewHolder(@NonNull LocationsAdapter.ViewHolder holder, int position) {
         holder.carAddressTextView.setText(mLocations.get(position).getAddress());
+        holder.carExteriorTextView.setText(mLocations.get(position).getExterior());
+        holder.carInteriorTextView.setText(mLocations.get(position).getInterior());
+
+        //holder.carExteriorTextView.setText(String.valueOf(mLocations.get(position).getCoordinates()[0]));
+        //holder.carInteriorTextView.setText(String.valueOf(mLocations.get(position).getCoordinates()[1]));
+
+        holder.carEngineTextView.setText(mLocations.get(position).getEngineType());
+        holder.carFuelTextView.setText(String.valueOf(mLocations.get(position).getFuel()));
     }
 
     @Override
@@ -47,6 +55,14 @@ public class LocationsAdapter extends RecyclerView.Adapter<LocationsAdapter.View
     public class ViewHolder extends RecyclerView.ViewHolder {
         @BindView(R.id.car_address)
         TextView carAddressTextView;
+        @BindView(R.id.car_exterior)
+        TextView carExteriorTextView;
+        @BindView(R.id.car_interior)
+        TextView carInteriorTextView;
+        @BindView(R.id.car_engine)
+        TextView carEngineTextView;
+        @BindView(R.id.car_fuel)
+        TextView carFuelTextView;
 
         public ViewHolder(View itemView) {
             super(itemView);
