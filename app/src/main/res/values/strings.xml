@@ -9,7 +9,7 @@
     <string name="label_car_engine">Engine Type</string>
     <string name="label_car_fuel">Fuel</string>
 
-
+    <!-- Error messages -->
     <string name="no_internet">No internet connection.\nNo locations, right?</string>
     <string name="no_connection">Connection unavailable</string>
 
@@ -22,4 +22,5 @@
     <string name="car_interior_icon">Car interior icon</string>
     <string name="car_engine_icon">Engine type icon</string>
     <string name="car_fuel_icon">Fuel amount icon</string>
+
 </resources>

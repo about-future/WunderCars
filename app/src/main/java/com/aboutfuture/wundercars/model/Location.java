@@ -11,7 +11,6 @@ import com.google.gson.annotations.SerializedName;
 @Entity(tableName = "locations")
 public class Location {
     @PrimaryKey(autoGenerate = true)
-    @ColumnInfo(name = "id")
     private int id;
     @SerializedName("address")
     private String address;

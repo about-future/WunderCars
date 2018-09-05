@@ -10,7 +10,6 @@ import android.widget.TextView;
 
 import com.aboutfuture.wundercars.R;
 import com.aboutfuture.wundercars.model.Location;
-import com.aboutfuture.wundercars.model.LocationMinimal;
 
 import java.util.ArrayList;
 import java.util.List;
