@@ -161,10 +161,6 @@ public class LocationsFragment
 
     @Override
     public void onLoadFinished(@NonNull Loader<List<Location>> loader, final List<Location> data) {
-//        if (data != null) {
-//            mLocationsAdapter.setLocations(data);
-//            mLocations = data;
-//        }
         mLocationProgressBar.setVisibility(View.GONE);
 
         switch (loader.getId()) {

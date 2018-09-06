@@ -9,9 +9,15 @@
     <string name="label_car_engine">Engine Type</string>
     <string name="label_car_fuel">Fuel</string>
 
-    <!-- Error messages -->
+    <!-- Error messages & Dialogs -->
     <string name="no_internet">No internet connection.\nNo locations, right?</string>
     <string name="no_connection">Connection unavailable</string>
+    <string name="no_map_request">Sorry! You can\'t make maps requests.</string>
+    <string name="dialog_title">Permission Needed</string>
+    <string name="dialog_message">This permission is needed, so the app could localize you in relation with the cars.</string>
+    <string name="dialog_ok">OK</string>
+    <string name="dialog_cancel">Cancel</string>
+    <string name="location_unknown">Unable to get current location.</string>
 
     <!-- Preferences -->
     <string name="pref_locations_status_key">locations_loaded</string>
