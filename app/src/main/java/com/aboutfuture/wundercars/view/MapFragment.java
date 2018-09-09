@@ -13,7 +13,6 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -22,7 +21,8 @@ import android.widget.Toast;
 import com.aboutfuture.wundercars.MainActivity;
 import com.aboutfuture.wundercars.R;
 import com.aboutfuture.wundercars.model.Location;
-import com.aboutfuture.wundercars.model.MyClusterItem;
+import com.aboutfuture.wundercars.model.WunderClusterItem;
+import com.aboutfuture.wundercars.model.WunderClusterRenderer;
 import com.aboutfuture.wundercars.viewmodel.LocationsViewModel;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
@@ -35,46 +35,42 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
-import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
-import com.google.maps.android.MarkerManager;
+import com.google.maps.android.clustering.Cluster;
+import com.google.maps.android.clustering.ClusterItem;
 import com.google.maps.android.clustering.ClusterManager;
-import com.google.maps.android.clustering.view.ClusterRenderer;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 import static com.google.android.gms.maps.GoogleMap.*;
 
 public class MapFragment extends Fragment implements
-        OnMapReadyCallback, OnMapClickListener {
+        OnMapReadyCallback, OnMapClickListener,
+        ClusterManager.OnClusterClickListener<WunderClusterItem>,
+        ClusterManager.OnClusterItemClickListener<WunderClusterItem> {
 
-    private final static int FINE_PERMISSION_REQUEST_CODE = 9031;
-    private final static int COARSE_PERMISSION_REQUEST_CODE = 9032;
+//    private final static int FINE_PERMISSION_REQUEST_CODE = 9031;
+//    private final static int COARSE_PERMISSION_REQUEST_CODE = 9032;
     private final static int PERMISSION_REQUEST_CODE = 903;
     private final static String PERMISSION_FINE_LOCATION = Manifest.permission.ACCESS_FINE_LOCATION;
     private final static String PERMISSION_COARSE_LOCATION = Manifest.permission.ACCESS_COARSE_LOCATION;
 
     private MapView mMapView;
-
     private GoogleMap mMap;
     private List<Marker> mMarkers = new ArrayList<>();
     private boolean mPermissionsGranted = false;
     private boolean isClicked = false;
     LatLngBounds.Builder mBounds;
+    private ClusterManager<WunderClusterItem> mClusterManager;
 
-    private ClusterManager<MyClusterItem> mClusterManager;
-
-    // TODO: click marker listener
     // TODO: Finalize permissions
     // TODO: Create card view for RecyclerView
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_map, container, false);
-        //ButterKnife.bind(this, view);
 
         if (isServiceAvailable()) {
             // Request runtime permissions if device SDK is Marshmallow or above
@@ -91,6 +87,7 @@ public class MapFragment extends Fragment implements
                 mMapView.getMapAsync(this);
             }
 
+            //MapsInitializer.initialize(getActivityCast());
 //                try {
 //                    MapsInitializer.initialize(getActivityCast());
 //                } catch (Exception e) {
@@ -106,57 +103,25 @@ public class MapFragment extends Fragment implements
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
         mClusterManager = new ClusterManager<>(getActivityCast(), mMap);
+        mClusterManager.setRenderer(new WunderClusterRenderer(getContext(), mMap, mClusterManager));
 
-
-        // Setup ViewModel and generate all the markers and map bounds
-        setupViewModel();
-
-        // Set a listener for marker click
+        // Set a listener for map and cluster manager
+        mMap.setOnMapClickListener(this);
         mMap.setOnMarkerClickListener(mClusterManager);
         mMap.setOnCameraIdleListener(mClusterManager);
-        mMap.setOnInfoWindowClickListener(mClusterManager);
+        mClusterManager.setOnClusterClickListener(this);
+        mClusterManager.setOnClusterItemClickListener(this);
 
-        //mMarkers = new ArrayList<>(mClusterManager.getMarkerCollection().getMarkers());
-
-        mMap.setOnMarkerClickListener(new OnMarkerClickListener() {
-            @Override
-            public boolean onMarkerClick(Marker marker) {
-                String id = marker.getId();
-
-                if (isClicked) {
-                    marker.hideInfoWindow();
-                    //mMap.moveCamera(CameraUpdateFactory.newLatLngBounds(mBounds, 500,500,0));
-                } else {
-                    marker.showInfoWindow();
-                    //mMap.moveCamera(CameraUpdateFactory.newLatLng(marker.getPosition()));
-                }
-
-                isClicked = !isClicked;
-
-                mMarkers = new ArrayList<>(mClusterManager.getMarkerCollection().getMarkers());
-
-                for (Marker mark : mMarkers) {
-                    if (!id.equals(mark.getId())) {
-                        mark.setVisible(!isClicked);
-                    }
-                }
-
-                return true;
-            }
-        });
-
-        // Set a listener for map click
-        mMap.setOnMapClickListener(this);
+        // Setup ViewModel, so we can generate all the clusters, markers and map bounds
+        setupViewModel();
 
         // Get current location
         getDeviceLocation();
 
-        if (ActivityCompat.checkSelfPermission(getActivityCast(), PERMISSION_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
-                ActivityCompat.checkSelfPermission(getActivityCast(), PERMISSION_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            return;
+        if (ActivityCompat.checkSelfPermission(getActivityCast(), PERMISSION_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED &&
+                ActivityCompat.checkSelfPermission(getActivityCast(), PERMISSION_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            mMap.setMyLocationEnabled(true);
         }
-
-        mMap.setMyLocationEnabled(true);
     }
 
     private void setupViewModel() {
@@ -171,10 +136,11 @@ public class MapFragment extends Fragment implements
         });
     }
 
+    // Add items to cluster manager and generate map bounds
     private void createClustersAndBounds(List<Location> locations) {
         mBounds = new LatLngBounds.Builder();
 
-        // For each location in our list:
+        // For each item in our locations list:
         // create a marker as a cluster item and add it to the cluster manager.
         // include a map bound, so when the camera is moved, will include all the markers.
         for (Location location : locations) {
@@ -182,8 +148,7 @@ public class MapFragment extends Fragment implements
                     location.getCoordinates()[1],
                     location.getCoordinates()[0]);
 
-            mClusterManager.addItem(new MyClusterItem(position, location.getName()));
-            //mMarkers.add(mMap.addMarker(new MarkerOptions().position(position).title(location.getName())));
+            mClusterManager.addItem(new WunderClusterItem(position, location.getName()));
             mBounds.include(position);
         }
         // Cluster our markers
@@ -195,32 +160,61 @@ public class MapFragment extends Fragment implements
             // TODO: set correct width and height
             mMap.moveCamera(CameraUpdateFactory.newLatLngBounds(mapBounds, 500, 500, 0));
         } catch (IllegalStateException e) {
-            Log.e("Exception", e.toString());
+            e.printStackTrace();
         }
     }
 
-    //@Override
-//    public boolean onMarkerClick(Marker marker) {
-//        String id = marker.getId();
-//
-//        if (isClicked) {
-//            marker.hideInfoWindow();
-//            //mMap.moveCamera(CameraUpdateFactory.newLatLngBounds(mBounds, 500,500,0));
-//        } else {
-//            marker.showInfoWindow();
-//            //mMap.moveCamera(CameraUpdateFactory.newLatLng(marker.getPosition()));
-//        }
-//
-//        isClicked = !isClicked;
-//
-//        for (Marker mark : mMarkers) {
-//            if (!id.equals(mark.getId())) {
-//                mark.setVisible(!isClicked);
-//            }
-//        }
-//
-//        return true;
-//    }
+    // When user clicks anywhere on the map, show markers that are hidden
+    @Override
+    public void onMapClick(LatLng latLng) {
+        for (Marker mark : mMarkers) {
+            mark.setVisible(true);
+        }
+        isClicked = false;
+    }
+
+    // When user clicks on a cluster, zoom in on that cluster and show all it's markers
+    @Override
+    public boolean onClusterClick(Cluster<WunderClusterItem> cluster) {
+        // Create the builder to collect all essential cluster items for the bounds.
+        LatLngBounds.Builder builder = LatLngBounds.builder();
+        for (ClusterItem item : cluster.getItems()) {
+            builder.include(item.getPosition());
+        }
+        // Get the LatLngBounds
+        final LatLngBounds bounds = builder.build();
+
+        // Animate camera to the new bounds
+        try {
+            mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, 100));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        isClicked = false;
+
+        return true;
+    }
+
+    // When user clicks on a marker, hide all other markers and show the car's number as a title
+    @Override
+    public boolean onClusterItemClick(WunderClusterItem wunderClusterItem) {
+        isClicked = !isClicked;
+
+        mMarkers = new ArrayList<>(mClusterManager.getMarkerCollection().getMarkers());
+        for (Marker mark : mMarkers) {
+            if (!wunderClusterItem.getTitle().equals(mark.getTitle())) {
+                mark.setVisible(!isClicked);
+            } else {
+                if (isClicked)
+                    mark.showInfoWindow();
+                else
+                    mark.hideInfoWindow();
+            }
+        }
+
+        return true;
+    }
 
     @Override
     public void onStart() {
@@ -256,15 +250,6 @@ public class MapFragment extends Fragment implements
     public void onLowMemory() {
         super.onLowMemory();
         mMapView.onLowMemory();
-    }
-
-
-    @Override
-    public void onMapClick(LatLng latLng) {
-//        for (Marker mark : mMarkers) {
-//            mark.setVisible(true);
-//        }
-        //TODO: mClusterManager.getMarkerManager().onMarkerClick()
     }
 
     public MainActivity getActivityCast() {
@@ -398,7 +383,7 @@ public class MapFragment extends Fragment implements
                 });
             }
         } catch (SecurityException | NullPointerException e) {
-            // Don't do anything.
+            e.printStackTrace();
         }
     }
 }

@@ -11,6 +11,7 @@ import android.support.v4.content.Loader;
 import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -45,7 +46,6 @@ public class LocationsFragment
 
     private LinearLayoutManager mLinearLayoutManager;
     private LocationsAdapter mLocationsAdapter;
-    //private List<Location> mLocations;
     private AppDatabase mDb;
 
     @BindView(R.id.locations_rv)
@@ -59,18 +59,20 @@ public class LocationsFragment
 
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         if (savedInstanceState != null && savedInstanceState.containsKey(LOCATIONS_RECYCLER_POSITION_KEY)) {
-            mLocationsPosition = savedInstanceState.getInt(LOCATIONS_RECYCLER_POSITION_KEY);
+            //mLocationsPosition = savedInstanceState.getInt(LOCATIONS_RECYCLER_POSITION_KEY);
         }
 
         View view = inflater.inflate(R.layout.fragment_locations_list, container, false);
         ButterKnife.bind(this, view);
 
-        mLinearLayoutManager = new LinearLayoutManager(getContext());
-        mLocationsRecyclerView.setLayoutManager(mLinearLayoutManager);
-        DividerItemDecoration mDividerItemDecoration = new DividerItemDecoration(
-                mLocationsRecyclerView.getContext(),
-                DividerItemDecoration.VERTICAL);
-        mLocationsRecyclerView.addItemDecoration(mDividerItemDecoration);
+        int columnCount = getResources().getInteger(R.integer.car_list_column_count);
+        StaggeredGridLayoutManager sglm =
+                new StaggeredGridLayoutManager(columnCount, StaggeredGridLayoutManager.VERTICAL);
+        mLocationsRecyclerView.setLayoutManager(sglm);
+//        DividerItemDecoration mDividerItemDecoration = new DividerItemDecoration(
+//                mLocationsRecyclerView.getContext(),
+//                DividerItemDecoration.VERTICAL);
+//        mLocationsRecyclerView.addItemDecoration(mDividerItemDecoration);
         mLocationsRecyclerView.setHasFixedSize(false);
         mLocationsAdapter = new LocationsAdapter(getContext());
         mLocationsRecyclerView.setAdapter(mLocationsAdapter);
@@ -97,7 +99,6 @@ public class LocationsFragment
             public void onChanged(@Nullable List<Location> locations) {
                 if (locations != null) {
                     mLocationsAdapter.setLocations(locations);
-                    //mLocations = locations;
                     restorePosition();
                 }
             }
@@ -133,17 +134,17 @@ public class LocationsFragment
     }
 
     private void restorePosition() {
-        if (mLocationsPosition == RecyclerView.NO_POSITION) mLocationsPosition = 0;
+        //if (mLocationsPosition == RecyclerView.NO_POSITION) mLocationsPosition = 0;
         // Scroll the RecyclerView to mPosition
-        mLocationsRecyclerView.scrollToPosition(mLocationsPosition);
+        //mLocationsRecyclerView.scrollToPosition(mLocationsPosition);
     }
 
     @Override
     public void onSaveInstanceState(@NonNull Bundle outState) {
         // Save RecyclerView state
-        mLocationsPosition = mLinearLayoutManager.findFirstVisibleItemPosition();
-
-        outState.putInt(LOCATIONS_RECYCLER_POSITION_KEY, mLocationsPosition);
+        //mLocationsPosition = mLinearLayoutManager.findFirstVisibleItemPosition();
+        //TODO: fix Position
+        //outState.putInt(LOCATIONS_RECYCLER_POSITION_KEY, mLocationsPosition);
         super.onSaveInstanceState(outState);
     }
 

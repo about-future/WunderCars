@@ -28,20 +28,17 @@ public class LocationsAdapter extends RecyclerView.Adapter<LocationsAdapter.View
     @NonNull
     @Override
     public LocationsAdapter.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(mContext).inflate(R.layout.location_list_item, parent, false);
+        View view = LayoutInflater.from(mContext).inflate(R.layout.location_card_item, parent, false);
         view.setFocusable(false);
         return new ViewHolder(view);
     }
 
     @Override
     public void onBindViewHolder(@NonNull LocationsAdapter.ViewHolder holder, int position) {
+        holder.carNumberTextView.setText(mLocations.get(position).getName());
         holder.carAddressTextView.setText(mLocations.get(position).getAddress());
         holder.carExteriorTextView.setText(mLocations.get(position).getExterior());
         holder.carInteriorTextView.setText(mLocations.get(position).getInterior());
-
-        //holder.carExteriorTextView.setText(String.valueOf(mLocations.get(position).getCoordinates()[0]));
-        //holder.carInteriorTextView.setText(String.valueOf(mLocations.get(position).getCoordinates()[1]));
-
         holder.carEngineTextView.setText(mLocations.get(position).getEngineType());
         holder.carFuelTextView.setText(String.valueOf(mLocations.get(position).getFuel()));
     }
@@ -52,6 +49,8 @@ public class LocationsAdapter extends RecyclerView.Adapter<LocationsAdapter.View
     }
 
     public class ViewHolder extends RecyclerView.ViewHolder {
+        @BindView(R.id.car_number)
+        TextView carNumberTextView;
         @BindView(R.id.car_address)
         TextView carAddressTextView;
         @BindView(R.id.car_exterior)

@@ -5,4 +5,7 @@
     <dimen name="recycler_view_margin">16dp</dimen>
     <dimen name="icon">48dp</dimen>
     <dimen name="body_text_size">15sp</dimen>
+    <dimen name="card_margin">8dp</dimen>
+
+    <integer name="car_list_column_count">1</integer>
 </resources>
