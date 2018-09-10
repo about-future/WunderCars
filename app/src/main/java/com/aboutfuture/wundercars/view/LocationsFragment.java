@@ -8,8 +8,6 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.Loader;
-import android.support.v7.widget.DividerItemDecoration;
-import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.view.LayoutInflater;
@@ -28,7 +26,7 @@ import com.aboutfuture.wundercars.data.LocationsAdapter;
 import com.aboutfuture.wundercars.data.LocationsLoader;
 import com.aboutfuture.wundercars.model.Location;
 import com.aboutfuture.wundercars.utils.LocationsPreferences;
-import com.aboutfuture.wundercars.utils.NetworkUtils;
+import com.aboutfuture.wundercars.utils.WunderUtils;
 import com.aboutfuture.wundercars.viewmodel.LocationsViewModel;
 
 import java.util.List;
@@ -41,10 +39,6 @@ public class LocationsFragment
         implements LoaderManager.LoaderCallbacks<List<Location>> {
 
     private static final int LOCATIONS_LOADER_ID = 903;
-    private final String LOCATIONS_RECYCLER_POSITION_KEY = "locations_recycler_position";
-    private int mLocationsPosition = RecyclerView.NO_POSITION;
-
-    private LinearLayoutManager mLinearLayoutManager;
     private LocationsAdapter mLocationsAdapter;
     private AppDatabase mDb;
 
@@ -58,10 +52,6 @@ public class LocationsFragment
     TextView mNoConnectionMessage;
 
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        if (savedInstanceState != null && savedInstanceState.containsKey(LOCATIONS_RECYCLER_POSITION_KEY)) {
-            //mLocationsPosition = savedInstanceState.getInt(LOCATIONS_RECYCLER_POSITION_KEY);
-        }
-
         View view = inflater.inflate(R.layout.fragment_locations_list, container, false);
         ButterKnife.bind(this, view);
 
@@ -69,10 +59,6 @@ public class LocationsFragment
         StaggeredGridLayoutManager sglm =
                 new StaggeredGridLayoutManager(columnCount, StaggeredGridLayoutManager.VERTICAL);
         mLocationsRecyclerView.setLayoutManager(sglm);
-//        DividerItemDecoration mDividerItemDecoration = new DividerItemDecoration(
-//                mLocationsRecyclerView.getContext(),
-//                DividerItemDecoration.VERTICAL);
-//        mLocationsRecyclerView.addItemDecoration(mDividerItemDecoration);
         mLocationsRecyclerView.setHasFixedSize(false);
         mLocationsAdapter = new LocationsAdapter(getContext());
         mLocationsRecyclerView.setAdapter(mLocationsAdapter);
@@ -99,7 +85,6 @@ public class LocationsFragment
             public void onChanged(@Nullable List<Location> locations) {
                 if (locations != null) {
                     mLocationsAdapter.setLocations(locations);
-                    restorePosition();
                 }
             }
         });
@@ -107,7 +92,7 @@ public class LocationsFragment
 
     private void getData() {
         // Get of refresh data, if there is a network connection
-        if (NetworkUtils.isConnected(getActivityCast())) {
+        if (WunderUtils.isConnected(getActivityCast())) {
             mLocationsRecyclerView.setVisibility(View.VISIBLE);
             mLocationProgressBar.setVisibility(View.VISIBLE);
             mNoConnectionImageView.setVisibility(View.INVISIBLE);
@@ -131,21 +116,6 @@ public class LocationsFragment
 
     public MainActivity getActivityCast() {
         return (MainActivity) getActivity();
-    }
-
-    private void restorePosition() {
-        //if (mLocationsPosition == RecyclerView.NO_POSITION) mLocationsPosition = 0;
-        // Scroll the RecyclerView to mPosition
-        //mLocationsRecyclerView.scrollToPosition(mLocationsPosition);
-    }
-
-    @Override
-    public void onSaveInstanceState(@NonNull Bundle outState) {
-        // Save RecyclerView state
-        //mLocationsPosition = mLinearLayoutManager.findFirstVisibleItemPosition();
-        //TODO: fix Position
-        //outState.putInt(LOCATIONS_RECYCLER_POSITION_KEY, mLocationsPosition);
-        super.onSaveInstanceState(outState);
     }
 
     @NonNull

@@ -41,6 +41,7 @@ public class LocationsAdapter extends RecyclerView.Adapter<LocationsAdapter.View
         holder.carInteriorTextView.setText(mLocations.get(position).getInterior());
         holder.carEngineTextView.setText(mLocations.get(position).getEngineType());
         holder.carFuelTextView.setText(String.valueOf(mLocations.get(position).getFuel()));
+        holder.carVinTextView.setText(mLocations.get(position).getVin());
     }
 
     @Override
@@ -61,6 +62,8 @@ public class LocationsAdapter extends RecyclerView.Adapter<LocationsAdapter.View
         TextView carEngineTextView;
         @BindView(R.id.car_fuel)
         TextView carFuelTextView;
+        @BindView(R.id.car_vin)
+        TextView carVinTextView;
 
         public ViewHolder(View itemView) {
             super(itemView);

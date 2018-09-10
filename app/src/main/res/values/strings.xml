@@ -4,10 +4,11 @@
     <!-- Labels -->
     <string name="label_tab_locations">Locations</string>
     <string name="label_tab_map">Map</string>
-    <string name="label_car_exterior">Exterior</string>
-    <string name="label_car_interior">Interior</string>
-    <string name="label_car_engine">Engine Type</string>
-    <string name="label_car_fuel">Fuel</string>
+    <string name="label_car_exterior">Exterior:</string>
+    <string name="label_car_interior">Interior:</string>
+    <string name="label_car_engine">Engine Type:</string>
+    <string name="label_car_fuel">Fuel:</string>
+    <string name="label_car_vin">VIN:</string>
 
     <!-- Error messages & Dialogs -->
     <string name="no_internet">No internet connection.\nNo locations, right?</string>

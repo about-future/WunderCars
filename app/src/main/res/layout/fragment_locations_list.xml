@@ -38,7 +38,7 @@
         android:fontFamily="sans-serif-condensed"
         android:gravity="center"
         android:text="@string/no_internet"
-        android:textSize="@dimen/body_text_size"
+        android:textSize="15sp"
         android:visibility="invisible" />
 
 </FrameLayout>

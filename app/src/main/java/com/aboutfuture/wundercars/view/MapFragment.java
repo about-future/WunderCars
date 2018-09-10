@@ -3,7 +3,6 @@ package com.aboutfuture.wundercars.view;
 import android.Manifest;
 import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.ViewModelProviders;
-import android.content.DialogInterface;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
@@ -12,7 +11,6 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
-import android.support.v7.app.AlertDialog;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -23,10 +21,14 @@ import com.aboutfuture.wundercars.R;
 import com.aboutfuture.wundercars.model.Location;
 import com.aboutfuture.wundercars.model.WunderClusterItem;
 import com.aboutfuture.wundercars.model.WunderClusterRenderer;
+import com.aboutfuture.wundercars.utils.WunderUtils;
 import com.aboutfuture.wundercars.viewmodel.LocationsViewModel;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationCallback;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -35,8 +37,7 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.maps.android.clustering.Cluster;
 import com.google.maps.android.clustering.ClusterItem;
 import com.google.maps.android.clustering.ClusterManager;
@@ -51,8 +52,6 @@ public class MapFragment extends Fragment implements
         ClusterManager.OnClusterClickListener<WunderClusterItem>,
         ClusterManager.OnClusterItemClickListener<WunderClusterItem> {
 
-//    private final static int FINE_PERMISSION_REQUEST_CODE = 9031;
-//    private final static int COARSE_PERMISSION_REQUEST_CODE = 9032;
     private final static int PERMISSION_REQUEST_CODE = 903;
     private final static String PERMISSION_FINE_LOCATION = Manifest.permission.ACCESS_FINE_LOCATION;
     private final static String PERMISSION_COARSE_LOCATION = Manifest.permission.ACCESS_COARSE_LOCATION;
@@ -62,38 +61,35 @@ public class MapFragment extends Fragment implements
     private List<Marker> mMarkers = new ArrayList<>();
     private boolean mPermissionsGranted = false;
     private boolean isClicked = false;
-    LatLngBounds.Builder mBounds;
+    private LatLngBounds.Builder mBounds = new LatLngBounds.Builder();
     private ClusterManager<WunderClusterItem> mClusterManager;
-
-    // TODO: Finalize permissions
-    // TODO: Create card view for RecyclerView
+    private int[] mScreenSize;
+    private FusedLocationProviderClient mFusedLocationProviderClient;
+    private LocationCallback mLocationCallback;
+    private LocationRequest mLocationRequest;
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_map, container, false);
 
         if (isServiceAvailable()) {
-            // Request runtime permissions if device SDK is Marshmallow or above
+            mMapView = view.findViewById(R.id.map);
+            mMapView.onCreate(savedInstanceState);
+            mMapView.getMapAsync(this);
+
+            // Request runtime permissions, if device SDK is Marshmallow or above
             if (Build.VERSION.SDK_INT >= 23) {
                 requestLocationPermissions();
-                if (mPermissionsGranted) {
-                    mMapView = view.findViewById(R.id.map);
-                    mMapView.onCreate(savedInstanceState);
-                    mMapView.getMapAsync(this);
-                }
-            } else {
-                mMapView = view.findViewById(R.id.map);
-                mMapView.onCreate(savedInstanceState);
-                mMapView.getMapAsync(this);
             }
 
-            //MapsInitializer.initialize(getActivityCast());
-//                try {
-//                    MapsInitializer.initialize(getActivityCast());
-//                } catch (Exception e) {
-//                    e.printStackTrace();
-//                }
+            // Create an instance of the fused location provider client
+            mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(getActivityCast());
 
+            // Create a callback for location updates
+            createLocationCallback();
+
+            // Save the screen size, for the map bounds dimensions
+            mScreenSize = WunderUtils.getScreenSize(getActivityCast());
         }
 
         return view;
@@ -101,27 +97,30 @@ public class MapFragment extends Fragment implements
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
+        // Create an instance of the map and cluster manager
         mMap = googleMap;
         mClusterManager = new ClusterManager<>(getActivityCast(), mMap);
+        // Set a custom cluster renderer, that creates clusters for groups with more than 15 markers
         mClusterManager.setRenderer(new WunderClusterRenderer(getContext(), mMap, mClusterManager));
 
-        // Set a listener for map and cluster manager
+        // Set listeners for map and cluster manager
         mMap.setOnMapClickListener(this);
         mMap.setOnMarkerClickListener(mClusterManager);
         mMap.setOnCameraIdleListener(mClusterManager);
         mClusterManager.setOnClusterClickListener(this);
         mClusterManager.setOnClusterItemClickListener(this);
 
-        // Setup ViewModel, so we can generate all the clusters, markers and map bounds
+        // Setup ViewModel
         setupViewModel();
 
-        // Get current location
-        getDeviceLocation();
+        // Create location request
+        createLocationRequest();
 
-        if (ActivityCompat.checkSelfPermission(getActivityCast(), PERMISSION_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED &&
-                ActivityCompat.checkSelfPermission(getActivityCast(), PERMISSION_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-            mMap.setMyLocationEnabled(true);
-        }
+        // Enable user's location on map
+        enableLocationOnMap();
+
+        // Get current location
+        getDeviceCurrentLocation();
     }
 
     private void setupViewModel() {
@@ -130,50 +129,83 @@ public class MapFragment extends Fragment implements
             @Override
             public void onChanged(@Nullable List<Location> locations) {
                 if (locations != null) {
+                    // If locations are available, create all the clusters, markers and map bounds.
                     createClustersAndBounds(locations);
                 }
             }
         });
     }
 
-    // Add items to cluster manager and generate map bounds
-    private void createClustersAndBounds(List<Location> locations) {
-        mBounds = new LatLngBounds.Builder();
+    // Enable user's location on map, if permissions were granted
+    private void enableLocationOnMap() {
+        if (ActivityCompat.checkSelfPermission(getActivityCast(), PERMISSION_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED &&
+                ActivityCompat.checkSelfPermission(getActivityCast(), PERMISSION_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            // Enable user's location on map
+            mMap.setMyLocationEnabled(true);
+        }
+    }
 
+    // Create a location request instance and set the updating intervals and priority
+    protected void createLocationRequest() {
+        mLocationRequest = new LocationRequest();
+        mLocationRequest.setInterval(10000);
+        mLocationRequest.setFastestInterval(5000);
+        mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+    }
+
+    // Create a callback for receiving location events
+    private void createLocationCallback() {
+        mLocationCallback = new LocationCallback() {
+            @Override
+            public void onLocationResult(LocationResult locationResult) {
+                if (locationResult == null) {
+                    return;
+                }
+
+                // Every time the location is updated, make sure location is enabled
+                if (!mMap.isMyLocationEnabled()) {
+                    enableLocationOnMap();
+                }
+            }
+        };
+    }
+
+    // Add items to cluster manager and generate map bounds based on each item.
+    private void createClustersAndBounds(List<Location> locations) {
         // For each item in our locations list:
         // create a marker as a cluster item and add it to the cluster manager.
         // include a map bound, so when the camera is moved, will include all the markers.
         for (Location location : locations) {
-            LatLng position = new LatLng(
-                    location.getCoordinates()[1],
-                    location.getCoordinates()[0]);
-
+            LatLng position = new LatLng(location.getCoordinates()[1], location.getCoordinates()[0]);
             mClusterManager.addItem(new WunderClusterItem(position, location.getName()));
             mBounds.include(position);
         }
         // Cluster our markers
         mClusterManager.cluster();
 
-        // Try to set the new map bounds using the mapBounds
+        // Try to set the new map bounds using the mapBounds.
         try {
             LatLngBounds mapBounds = mBounds.build();
-            // TODO: set correct width and height
-            mMap.moveCamera(CameraUpdateFactory.newLatLngBounds(mapBounds, 500, 500, 0));
+            mMap.moveCamera(CameraUpdateFactory.newLatLngBounds(
+                    mapBounds, mScreenSize[0], mScreenSize[1], 0));
         } catch (IllegalStateException e) {
             e.printStackTrace();
         }
     }
 
-    // When user clicks anywhere on the map, show markers that are hidden
+    // Show all hidden markers
     @Override
     public void onMapClick(LatLng latLng) {
         for (Marker mark : mMarkers) {
             mark.setVisible(true);
         }
+
+        // Set isClicked value to false, so the next time user clicks a marker,
+        // the process of hiding the rest of the markers is restarted.
         isClicked = false;
     }
 
-    // When user clicks on a cluster, zoom in on that cluster and show all it's markers
+    // Zoom in on the clicked cluster and show all it's markers
     @Override
     public boolean onClusterClick(Cluster<WunderClusterItem> cluster) {
         // Create the builder to collect all essential cluster items for the bounds.
@@ -191,25 +223,33 @@ public class MapFragment extends Fragment implements
             e.printStackTrace();
         }
 
+        // Set isClicked value to false, so the next time user clicks a marker,
+        // the process of hiding the rest of the markers is restarted.
         isClicked = false;
 
         return true;
     }
 
-    // When user clicks on a marker, hide all other markers and show the car's number as a title
+    // When user clicks on a marker, hide all other markers and show the car's number as a title.
+    // If user clicks again on the same marker, show all hidden markers and hide the title.
     @Override
     public boolean onClusterItemClick(WunderClusterItem wunderClusterItem) {
         isClicked = !isClicked;
 
         mMarkers = new ArrayList<>(mClusterManager.getMarkerCollection().getMarkers());
         for (Marker mark : mMarkers) {
-            if (!wunderClusterItem.getTitle().equals(mark.getTitle())) {
-                mark.setVisible(!isClicked);
-            } else {
+            // If it's the clicked marker
+            if (wunderClusterItem.getTitle().equals(mark.getTitle())) {
+                // If isClicked is true, show the title (car's number)
                 if (isClicked)
                     mark.showInfoWindow();
                 else
+                    // Otherwise, hide the number
                     mark.hideInfoWindow();
+            } else {
+                // Otherwise, if it's not the clicked marker, hide it or show it,
+                // depending on isClicked value.
+                mark.setVisible(!isClicked);
             }
         }
 
@@ -226,12 +266,14 @@ public class MapFragment extends Fragment implements
     public void onResume() {
         super.onResume();
         mMapView.onResume();
+        startLocationUpdates();
     }
 
     @Override
     public void onPause() {
         super.onPause();
         mMapView.onPause();
+        stopLocationUpdates();
     }
 
     @Override
@@ -252,8 +294,29 @@ public class MapFragment extends Fragment implements
         mMapView.onLowMemory();
     }
 
+    @Override
+    public void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+        mMapView.onSaveInstanceState(outState);
+    }
+
     public MainActivity getActivityCast() {
         return (MainActivity) getActivity();
+    }
+
+    private void startLocationUpdates() {
+        try {
+            mFusedLocationProviderClient.requestLocationUpdates(
+                    mLocationRequest,
+                    mLocationCallback,
+                    null);
+        } catch (SecurityException | NullPointerException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void stopLocationUpdates() {
+        mFusedLocationProviderClient.removeLocationUpdates(mLocationCallback);
     }
 
     // Check if GooglePlayServices is available
@@ -273,7 +336,7 @@ public class MapFragment extends Fragment implements
         return false;
     }
 
-    // Request localizations permissions
+    // Request location permissions
     private void requestLocationPermissions() {
         String[] permissions = {PERMISSION_FINE_LOCATION, PERMISSION_COARSE_LOCATION};
         if (ContextCompat.checkSelfPermission(getActivityCast(),
@@ -281,50 +344,11 @@ public class MapFragment extends Fragment implements
             if (ContextCompat.checkSelfPermission(getActivityCast(),
                     PERMISSION_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
                 mPermissionsGranted = true;
-                getDeviceLocation();
             } else {
                 ActivityCompat.requestPermissions(getActivityCast(), permissions, PERMISSION_REQUEST_CODE);
             }
         } else {
             ActivityCompat.requestPermissions(getActivityCast(), permissions, PERMISSION_REQUEST_CODE);
-        }
-
-//        if (ContextCompat.checkSelfPermission(getActivityCast(),
-//                PERMISSION_ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-//            permissionFineGranted = true;
-//        } else {
-//            requestLocationPermission(PERMISSION_ACCESS_FINE_LOCATION, FINE_PERMISSION_REQUEST_CODE);
-//        }
-//
-//        if (ContextCompat.checkSelfPermission(getActivityCast(),
-//                PERMISSION_ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-//            permissionCoarseGranted = true;
-//        } else {
-//            requestLocationPermission(PERMISSION_ACCESS_COARSE_LOCATION, COARSE_PERMISSION_REQUEST_CODE);
-//        }
-    }
-
-    private void requestLocationPermission(final String permission, final int code) {
-        if (ActivityCompat.shouldShowRequestPermissionRationale(getActivityCast(), permission)) {
-            new AlertDialog.Builder(getActivityCast())
-                    .setTitle(getString(R.string.dialog_title))
-                    .setMessage(getString(R.string.dialog_message))
-                    .setPositiveButton(getString(R.string.dialog_ok), new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialogInterface, int i) {
-                            ActivityCompat.requestPermissions(getActivityCast(), new String[]{permission}, code);
-                        }
-                    })
-                    .setNegativeButton(getString(R.string.dialog_cancel), new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialogInterface, int i) {
-                            dialogInterface.dismiss();
-                        }
-                    })
-                    .create()
-                    .show();
-        } else {
-            ActivityCompat.requestPermissions(getActivityCast(), new String[]{permission}, code);
         }
     }
 
@@ -333,56 +357,43 @@ public class MapFragment extends Fragment implements
         if (requestCode == PERMISSION_REQUEST_CODE) {
             if (grantResults.length > 0) {
                 for (int result : grantResults) {
+                    // If one of the permissions was denied, set mPermissionsGranted to false and return
                     if (result != PackageManager.PERMISSION_GRANTED) {
                         mPermissionsGranted = false;
                         return;
                     }
                 }
+                // If the app reached this point, all permissions were granted
                 mPermissionsGranted = true;
             }
         }
-
-//        if (requestCode == FINE_PERMISSION_REQUEST_CODE) {
-//            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-//                permissionFineGranted = true;
-//            } else {
-//                permissionFineGranted = false;
-//                Toast.makeText(getActivityCast(), "Localization will not be available!", Toast.LENGTH_SHORT).show();
-//            }
-//        } else if (requestCode == COARSE_PERMISSION_REQUEST_CODE) {
-//            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-//                permissionCoarseGranted = true;
-//            } else {
-//                permissionCoarseGranted = false;
-//                Toast.makeText(getActivityCast(), "Localization will not be available!", Toast.LENGTH_SHORT).show();
-//            }
-//        }
     }
 
-    private void getDeviceLocation() {
-        FusedLocationProviderClient fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(getActivityCast());
-
+    // Get current location
+    private void getDeviceCurrentLocation() {
         try {
             if (mPermissionsGranted || Build.VERSION.SDK_INT < 23) {
-                Task location = fusedLocationProviderClient.getLastLocation();
-                location.addOnCompleteListener(new OnCompleteListener() {
-                    @Override
-                    public void onComplete(@NonNull Task task) {
-                        if (task.isSuccessful() && task.getResult() != null) {
-                            // Get current location
-                            android.location.Location currentLocation = (android.location.Location) task.getResult();
-                            // Include it in the bound list
-                            mBounds.include(new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude()));
-                            // Set the new map bounds
-                            mMap.moveCamera(CameraUpdateFactory.newLatLngBounds(mBounds.build(), 500, 500, 0));
-                        } else {
-                            // Otherwise, show a 'location unknown' toast message
-                            Toast.makeText(getActivityCast(), getString(R.string.location_unknown), Toast.LENGTH_SHORT).show();
-                        }
-                    }
-                });
+                mFusedLocationProviderClient.getLastLocation()
+                        .addOnSuccessListener(getActivityCast(), new OnSuccessListener<android.location.Location>() {
+                            @Override
+                            public void onSuccess(android.location.Location location) {
+                                if (location != null) {
+                                    mBounds.include(new LatLng(location.getLatitude(), location.getLongitude()));
+                                    // Set the new map bounds
+                                    try {
+                                        mMap.moveCamera(CameraUpdateFactory.newLatLngBounds(
+                                                mBounds.build(), mScreenSize[0], mScreenSize[1], 0));
+                                    } catch (NullPointerException e) {
+                                        e.printStackTrace();
+                                    }
+                                } else {
+                                    // Otherwise, show a 'location unknown' toast message
+                                    Toast.makeText(getActivityCast(), getString(R.string.location_unknown), Toast.LENGTH_SHORT).show();
+                                }
+                            }
+                        });
             }
-        } catch (SecurityException | NullPointerException e) {
+        } catch (SecurityException e) {
             e.printStackTrace();
         }
     }

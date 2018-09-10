@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="220dp"
+    android:layout_height="wrap_content"
     android:layout_margin="8dp"
     android:background="@color/colorAccent"
     app:cardCornerRadius="8dp"
@@ -30,7 +30,7 @@
         <TextView
             android:id="@+id/car_address"
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
+            android:layout_height="50dp"
             android:ellipsize="end"
             android:fontFamily="sans-serif-condensed"
             android:maxLines="2"
@@ -39,163 +39,263 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/car_number"
-            tools:text="Lesserstraße 170, 22049 Hamburg" />
+            tools:text="Lesserstraße 170, 22049 Hamburg. Lesserstraße 170, 22049 Hamburg. Lesserstraße 170, 22049 Hamburg" />
 
-        <LinearLayout
-            android:layout_width="match_parent"
+        <TextView
+            android:id="@+id/car_exterior_label"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="24dp"
-            android:baselineAligned="false"
-            android:orientation="horizontal"
-            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/car_address"
+            android:textColor="@color/secondaryTextColor"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/car_address">
+            android:fontFamily="sans-serif-condensed"
+            android:text="@string/label_car_exterior"/>
 
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:gravity="center"
-                android:orientation="vertical">
+        <TextView
+            android:id="@+id/car_exterior"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:layout_constraintStart_toEndOf="@id/car_exterior_label"
+            app:layout_constraintTop_toTopOf="@id/car_exterior_label"
+            android:layout_marginStart="@dimen/card_margin"
+            android:fontFamily="sans-serif-condensed"
+            tools:text="GOOD"/>
 
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:fontFamily="sans-serif-condensed"
-                    android:gravity="center"
-                    android:text="@string/label_car_exterior"
-                    android:textAllCaps="true"
-                    android:textColor="@color/secondaryTextColor"
-                    android:textSize="14sp" />
+        <TextView
+            android:id="@+id/car_interior_label"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:layout_constraintTop_toBottomOf="@id/car_exterior_label"
+            android:textColor="@color/secondaryTextColor"
+            app:layout_constraintStart_toStartOf="parent"
+            android:fontFamily="sans-serif-condensed"
+            android:text="@string/label_car_interior"/>
 
-                <ImageView
-                    android:layout_width="48dp"
-                    android:layout_height="48dp"
-                    android:alpha="0.8"
-                    android:contentDescription="@string/car_exterior_icon"
-                    android:src="@drawable/exterior_car_icon" />
+        <TextView
+            android:id="@+id/car_interior"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:layout_constraintStart_toStartOf="@id/car_exterior"
+            app:layout_constraintTop_toTopOf="@id/car_interior_label"
+            android:fontFamily="sans-serif-condensed"
+            tools:text="UNACCEPTABLE"/>
 
-                <TextView
-                    android:id="@+id/car_exterior"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:fontFamily="sans-serif-condensed"
-                    android:gravity="center"
-                    android:textAllCaps="true"
-                    android:textSize="12sp"
-                    tools:text="Good" />
+        <TextView
+            android:id="@+id/car_vin_label"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:layout_constraintTop_toBottomOf="@id/car_interior_label"
+            android:textColor="@color/secondaryTextColor"
+            app:layout_constraintStart_toStartOf="parent"
+            android:fontFamily="sans-serif-condensed"
+            android:text="@string/label_car_vin"/>
 
-            </LinearLayout>
+        <TextView
+            android:id="@+id/car_vin"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:layout_constraintStart_toStartOf="@id/car_exterior"
+            app:layout_constraintTop_toTopOf="@id/car_vin_label"
+            android:fontFamily="sans-serif-condensed"
+            tools:text="WME4513341K412697"/>
 
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:gravity="center"
-                android:orientation="vertical">
+        <TextView
+            android:id="@+id/car_engine_label"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:layout_constraintTop_toTopOf="@id/car_exterior_label"
+            android:textColor="@color/secondaryTextColor"
+            app:layout_constraintEnd_toEndOf="@id/car_fuel_label"
+            android:fontFamily="sans-serif-condensed"
+            android:text="@string/label_car_engine" />
 
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:fontFamily="sans-serif-condensed"
-                    android:gravity="center"
-                    android:text="@string/label_car_interior"
-                    android:textAllCaps="true"
-                    android:textColor="@color/secondaryTextColor"
-                    android:textSize="14sp" />
+        <TextView
+            android:id="@+id/car_engine"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="sans-serif-condensed"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="@id/car_exterior_label"
+            tools:text="CE"/>
 
-                <ImageView
-                    android:layout_width="48dp"
-                    android:layout_height="48dp"
-                    android:alpha="0.8"
-                    android:contentDescription="@string/car_interior_icon"
-                    android:src="@drawable/interior_car_icon" />
+        <TextView
+            android:id="@+id/car_fuel_label"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:layout_constraintTop_toBottomOf="@id/car_exterior_label"
+            android:textColor="@color/secondaryTextColor"
+            app:layout_constraintEnd_toStartOf="@id/car_fuel"
+            android:layout_marginEnd="@dimen/card_margin"
+            android:fontFamily="sans-serif-condensed"
+            android:text="@string/label_car_fuel"/>
 
-                <TextView
-                    android:id="@+id/car_interior"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:fontFamily="sans-serif-condensed"
-                    android:gravity="center"
-                    android:textAllCaps="true"
-                    android:textSize="12sp"
-                    tools:text="Unacceptable" />
+        <TextView
+            android:id="@+id/car_fuel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="@id/car_interior_label"
+            tools:text="87"/>
 
-            </LinearLayout>
 
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:gravity="center"
-                android:orientation="vertical">
 
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:fontFamily="sans-serif-condensed"
-                    android:gravity="center"
-                    android:text="@string/label_car_engine"
-                    android:textAllCaps="true"
-                    android:textColor="@color/secondaryTextColor"
-                    android:textSize="14sp" />
 
-                <ImageView
-                    android:layout_width="48dp"
-                    android:layout_height="48dp"
-                    android:alpha="0.8"
-                    android:contentDescription="@string/car_engine_icon"
-                    android:src="@drawable/engine" />
+        <!--<LinearLayout-->
+            <!--android:layout_width="match_parent"-->
+            <!--android:layout_height="wrap_content"-->
+            <!--android:layout_marginTop="8dp"-->
+            <!--android:baselineAligned="false"-->
+            <!--android:orientation="horizontal"-->
+            <!--app:layout_constraintBottom_toBottomOf="parent"-->
+            <!--app:layout_constraintEnd_toEndOf="parent"-->
+            <!--app:layout_constraintStart_toStartOf="parent"-->
+            <!--app:layout_constraintTop_toBottomOf="@+id/car_address">-->
 
-                <TextView
-                    android:id="@+id/car_engine"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:fontFamily="sans-serif-condensed"
-                    android:gravity="center"
-                    android:textAllCaps="true"
-                    android:textSize="12sp"
-                    tools:text="CE" />
+            <!--<LinearLayout-->
+                <!--android:layout_width="0dp"-->
+                <!--android:layout_height="wrap_content"-->
+                <!--android:layout_weight="1"-->
+                <!--android:gravity="center"-->
+                <!--android:orientation="vertical">-->
 
-            </LinearLayout>
+                <!--<TextView-->
+                    <!--android:layout_width="match_parent"-->
+                    <!--android:layout_height="wrap_content"-->
+                    <!--android:fontFamily="sans-serif-condensed"-->
+                    <!--android:gravity="center"-->
+                    <!--android:text="@string/label_car_exterior"-->
+                    <!--android:textAllCaps="true"-->
+                    <!--android:textColor="@color/secondaryTextColor"-->
+                    <!--android:textSize="14sp" />-->
 
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:gravity="center"
-                android:orientation="vertical">
+                <!--<ImageView-->
+                    <!--android:layout_width="48dp"-->
+                    <!--android:layout_height="48dp"-->
+                    <!--android:alpha="0.8"-->
+                    <!--android:contentDescription="@string/car_exterior_icon"-->
+                    <!--android:src="@drawable/exterior_car_icon" />-->
 
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:fontFamily="sans-serif-condensed"
-                    android:gravity="center"
-                    android:text="@string/label_car_fuel"
-                    android:textAllCaps="true"
-                    android:textColor="@color/secondaryTextColor"
-                    android:textSize="14sp" />
+                <!--<TextView-->
+                    <!--android:id="@+id/car_exterior"-->
+                    <!--android:layout_width="match_parent"-->
+                    <!--android:layout_height="wrap_content"-->
+                    <!--android:fontFamily="sans-serif-condensed"-->
+                    <!--android:gravity="center"-->
+                    <!--android:textAllCaps="true"-->
+                    <!--android:textSize="10sp"-->
+                    <!--tools:text="Good" />-->
 
-                <ImageView
-                    android:layout_width="48dp"
-                    android:layout_height="48dp"
-                    android:alpha="0.8"
-                    android:contentDescription="@string/car_fuel_icon"
-                    android:src="@drawable/fuel" />
+            <!--</LinearLayout>-->
 
-                <TextView
-                    android:id="@+id/car_fuel"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:fontFamily="sans-serif-condensed"
-                    android:gravity="center"
-                    android:textAllCaps="true"
-                    android:textSize="12sp"
-                    tools:text="87" />
+            <!--<LinearLayout-->
+                <!--android:layout_width="0dp"-->
+                <!--android:layout_height="wrap_content"-->
+                <!--android:layout_weight="1"-->
+                <!--android:gravity="center"-->
+                <!--android:orientation="vertical">-->
 
-            </LinearLayout>
+                <!--<TextView-->
+                    <!--android:layout_width="match_parent"-->
+                    <!--android:layout_height="wrap_content"-->
+                    <!--android:fontFamily="sans-serif-condensed"-->
+                    <!--android:gravity="center"-->
+                    <!--android:text="@string/label_car_interior"-->
+                    <!--android:textAllCaps="true"-->
+                    <!--android:textColor="@color/secondaryTextColor"-->
+                    <!--android:textSize="14sp" />-->
 
-        </LinearLayout>
+                <!--<ImageView-->
+                    <!--android:layout_width="48dp"-->
+                    <!--android:layout_height="48dp"-->
+                    <!--android:alpha="0.8"-->
+                    <!--android:contentDescription="@string/car_interior_icon"-->
+                    <!--android:src="@drawable/interior_car_icon" />-->
+
+                <!--<TextView-->
+                    <!--android:id="@+id/car_interior"-->
+                    <!--android:layout_width="match_parent"-->
+                    <!--android:layout_height="wrap_content"-->
+                    <!--android:fontFamily="sans-serif-condensed"-->
+                    <!--android:gravity="center"-->
+                    <!--android:textAllCaps="true"-->
+                    <!--android:textSize="10sp"-->
+                    <!--tools:text="Unacceptable" />-->
+
+            <!--</LinearLayout>-->
+
+            <!--<LinearLayout-->
+                <!--android:layout_width="0dp"-->
+                <!--android:layout_height="wrap_content"-->
+                <!--android:layout_weight="1"-->
+                <!--android:gravity="center"-->
+                <!--android:orientation="vertical">-->
+
+                <!--<TextView-->
+                    <!--android:layout_width="match_parent"-->
+                    <!--android:layout_height="wrap_content"-->
+                    <!--android:fontFamily="sans-serif-condensed"-->
+                    <!--android:gravity="center"-->
+                    <!--android:text="@string/label_car_engine"-->
+                    <!--android:textAllCaps="true"-->
+                    <!--android:textColor="@color/secondaryTextColor"-->
+                    <!--android:textSize="14sp" />-->
+
+                <!--<ImageView-->
+                    <!--android:layout_width="48dp"-->
+                    <!--android:layout_height="48dp"-->
+                    <!--android:alpha="0.8"-->
+                    <!--android:contentDescription="@string/car_engine_icon"-->
+                    <!--android:src="@drawable/engine" />-->
+
+                <!--<TextView-->
+                    <!--android:id="@+id/car_engine"-->
+                    <!--android:layout_width="match_parent"-->
+                    <!--android:layout_height="wrap_content"-->
+                    <!--android:fontFamily="sans-serif-condensed"-->
+                    <!--android:gravity="center"-->
+                    <!--android:textAllCaps="true"-->
+                    <!--android:textSize="10sp"-->
+                    <!--tools:text="CE" />-->
+
+            <!--</LinearLayout>-->
+
+            <!--<LinearLayout-->
+                <!--android:layout_width="0dp"-->
+                <!--android:layout_height="wrap_content"-->
+                <!--android:layout_weight="1"-->
+                <!--android:gravity="center"-->
+                <!--android:orientation="vertical">-->
+
+                <!--<TextView-->
+                    <!--android:layout_width="match_parent"-->
+                    <!--android:layout_height="wrap_content"-->
+                    <!--android:fontFamily="sans-serif-condensed"-->
+                    <!--android:gravity="center"-->
+                    <!--android:text="@string/label_car_fuel"-->
+                    <!--android:textAllCaps="true"-->
+                    <!--android:textColor="@color/secondaryTextColor"-->
+                    <!--android:textSize="14sp" />-->
+
+                <!--<ImageView-->
+                    <!--android:layout_width="48dp"-->
+                    <!--android:layout_height="48dp"-->
+                    <!--android:alpha="0.8"-->
+                    <!--android:contentDescription="@string/car_fuel_icon"-->
+                    <!--android:src="@drawable/fuel" />-->
+
+                <!--<TextView-->
+                    <!--android:id="@+id/car_fuel"-->
+                    <!--android:layout_width="match_parent"-->
+                    <!--android:layout_height="wrap_content"-->
+                    <!--android:fontFamily="sans-serif-condensed"-->
+                    <!--android:gravity="center"-->
+                    <!--android:textAllCaps="true"-->
+                    <!--android:textSize="10sp"-->
+                    <!--tools:text="87" />-->
+
+            <!--</LinearLayout>-->
+
+        <!--</LinearLayout>-->
 
     </android.support.constraint.ConstraintLayout>
 
