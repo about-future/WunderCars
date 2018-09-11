@@ -2,6 +2,7 @@ package com.aboutfuture.wundercars.view;
 
 import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.ViewModelProviders;
+import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -28,19 +29,21 @@ import com.aboutfuture.wundercars.model.Location;
 import com.aboutfuture.wundercars.utils.LocationsPreferences;
 import com.aboutfuture.wundercars.utils.WunderUtils;
 import com.aboutfuture.wundercars.viewmodel.LocationsViewModel;
+import com.google.android.gms.maps.model.LatLng;
 
 import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 
-public class LocationsFragment
-        extends Fragment
-        implements LoaderManager.LoaderCallbacks<List<Location>> {
+public class LocationsFragment extends Fragment implements
+        LoaderManager.LoaderCallbacks<List<Location>>,
+        LocationsAdapter.ListItemClickListener {
 
     private static final int LOCATIONS_LOADER_ID = 903;
     private LocationsAdapter mLocationsAdapter;
     private AppDatabase mDb;
+    private OnCarClickListener mListener;
 
     @BindView(R.id.locations_rv)
     RecyclerView mLocationsRecyclerView;
@@ -51,6 +54,18 @@ public class LocationsFragment
     @BindView(R.id.locations_no_connection_message)
     TextView mNoConnectionMessage;
 
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+
+        try {
+            mListener = (OnCarClickListener) context;
+        } catch (ClassCastException e) {
+            throw new ClassCastException(context.toString()
+                    + " must implement OnCarClickListener");
+        }
+    }
+
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_locations_list, container, false);
         ButterKnife.bind(this, view);
@@ -60,7 +75,7 @@ public class LocationsFragment
                 new StaggeredGridLayoutManager(columnCount, StaggeredGridLayoutManager.VERTICAL);
         mLocationsRecyclerView.setLayoutManager(sglm);
         mLocationsRecyclerView.setHasFixedSize(false);
-        mLocationsAdapter = new LocationsAdapter(getContext());
+        mLocationsAdapter = new LocationsAdapter(getContext(), this);
         mLocationsRecyclerView.setAdapter(mLocationsAdapter);
 
         mDb = AppDatabase.getInstance(getContext());
@@ -162,5 +177,16 @@ public class LocationsFragment
     @Override
     public void onLoaderReset(@NonNull Loader<List<Location>> loader) {
         mLocationsAdapter.setLocations(null);
+    }
+
+    @Override
+    public void onItemClickListener(LatLng location) {
+        mListener.onCarSelected(location);
+    }
+
+    // Interface needed to pass the coordinates for this fragment to main activity,
+    // so the activity can set the maps coordinates to a new map fragment.
+    public interface OnCarClickListener {
+        void onCarSelected(LatLng coordinates);
     }
 }

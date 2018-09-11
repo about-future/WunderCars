@@ -19,7 +19,6 @@
             android:name="com.google.android.gms.version"
             android:value="@integer/google_play_services_version" />
 
-        <!-- TODO: Before you run the app, please replace @string/maps_key with your Google Maps API_KEY. Thank you! -->
         <meta-data
             android:name="com.google.android.geo.API_KEY"
             android:value="@string/maps_key" />

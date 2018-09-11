@@ -5,13 +5,13 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_margin="8dp"
-    android:background="@color/colorAccent"
     app:cardCornerRadius="8dp"
     app:cardElevation="8dp">
 
     <android.support.constraint.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:background="@drawable/touch_selector_card"
         android:layout_margin="16dp">
 
         <TextView

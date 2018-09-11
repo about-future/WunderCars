@@ -37,7 +37,6 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
-import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.maps.android.clustering.Cluster;
 import com.google.maps.android.clustering.ClusterItem;
 import com.google.maps.android.clustering.ClusterManager;
@@ -55,6 +54,8 @@ public class MapFragment extends Fragment implements
     private final static int PERMISSION_REQUEST_CODE = 903;
     private final static String PERMISSION_FINE_LOCATION = Manifest.permission.ACCESS_FINE_LOCATION;
     private final static String PERMISSION_COARSE_LOCATION = Manifest.permission.ACCESS_COARSE_LOCATION;
+    private final static String MAP_ZOOM_KEY = "map_zoom";
+    private final static String MAP_LOCATION_TARGET_KEY = "map_location_target";
 
     private MapView mMapView;
     private GoogleMap mMap;
@@ -67,9 +68,20 @@ public class MapFragment extends Fragment implements
     private FusedLocationProviderClient mFusedLocationProviderClient;
     private LocationCallback mLocationCallback;
     private LocationRequest mLocationRequest;
+    private float mMapZoom;
+    private LatLng mMapLocationTarget;
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        if (savedInstanceState != null) {
+            if (savedInstanceState.containsKey(MAP_ZOOM_KEY)) {
+                mMapZoom = savedInstanceState.getFloat(MAP_ZOOM_KEY);
+            }
+            if (savedInstanceState.containsKey(MAP_LOCATION_TARGET_KEY)) {
+                mMapLocationTarget = savedInstanceState.getParcelable(MAP_LOCATION_TARGET_KEY);
+            }
+        }
+
         View view = inflater.inflate(R.layout.fragment_map, container, false);
 
         if (isServiceAvailable()) {
@@ -100,6 +112,7 @@ public class MapFragment extends Fragment implements
         // Create an instance of the map and cluster manager
         mMap = googleMap;
         mClusterManager = new ClusterManager<>(getActivityCast(), mMap);
+
         // Set a custom cluster renderer, that creates clusters for groups with more than 15 markers
         mClusterManager.setRenderer(new WunderClusterRenderer(getContext(), mMap, mClusterManager));
 
@@ -123,6 +136,7 @@ public class MapFragment extends Fragment implements
         getDeviceCurrentLocation();
     }
 
+    // Create a new instance of ViewModel and attach an observer that notices any chance in the database.
     private void setupViewModel() {
         LocationsViewModel locationsViewModel = ViewModelProviders.of(this).get(LocationsViewModel.class);
         locationsViewModel.getLocations().observe(this, new Observer<List<Location>>() {
@@ -183,12 +197,26 @@ public class MapFragment extends Fragment implements
         // Cluster our markers
         mClusterManager.cluster();
 
-        // Try to set the new map bounds using the mapBounds.
+        // If there is a previous map location, restore it
+        if (mMapLocationTarget != null) {
+            restoreMap();
+        } else {
+            // Otherwise, try to set the new map bounds using the mapBounds.
+            try {
+                LatLngBounds mapBounds = mBounds.build();
+                mMap.moveCamera(CameraUpdateFactory.newLatLngBounds(
+                        mapBounds, mScreenSize[0], mScreenSize[1], 0));
+            } catch (IllegalStateException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    // Restore previous map location
+    private void restoreMap() {
         try {
-            LatLngBounds mapBounds = mBounds.build();
-            mMap.moveCamera(CameraUpdateFactory.newLatLngBounds(
-                    mapBounds, mScreenSize[0], mScreenSize[1], 0));
-        } catch (IllegalStateException e) {
+            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(mMapLocationTarget, mMapZoom));
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
@@ -237,19 +265,20 @@ public class MapFragment extends Fragment implements
         isClicked = !isClicked;
 
         mMarkers = new ArrayList<>(mClusterManager.getMarkerCollection().getMarkers());
-        for (Marker mark : mMarkers) {
+        for (Marker marker : mMarkers) {
             // If it's the clicked marker
-            if (wunderClusterItem.getTitle().equals(mark.getTitle())) {
+            if (wunderClusterItem.getTitle().equals(marker.getTitle())) {
                 // If isClicked is true, show the title (car's number)
-                if (isClicked)
-                    mark.showInfoWindow();
-                else
-                    // Otherwise, hide the number
-                    mark.hideInfoWindow();
+                if (isClicked) {
+                    marker.showInfoWindow();
+                } else {
+                    // Otherwise, hide the car number
+                    marker.hideInfoWindow();
+                }
             } else {
                 // Otherwise, if it's not the clicked marker, hide it or show it,
                 // depending on isClicked value.
-                mark.setVisible(!isClicked);
+                marker.setVisible(!isClicked);
             }
         }
 
@@ -296,11 +325,18 @@ public class MapFragment extends Fragment implements
 
     @Override
     public void onSaveInstanceState(@NonNull Bundle outState) {
-        super.onSaveInstanceState(outState);
+        if (mMap != null) {
+            // Save map's position
+            outState.putParcelable(MAP_LOCATION_TARGET_KEY, mMap.getCameraPosition().target);
+            // Save map's zoom
+            outState.putFloat(MAP_ZOOM_KEY, mMap.getCameraPosition().zoom);
+        }
+
         mMapView.onSaveInstanceState(outState);
+        super.onSaveInstanceState(outState);
     }
 
-    public MainActivity getActivityCast() {
+    private MainActivity getActivityCast() {
         return (MainActivity) getActivity();
     }
 
@@ -320,7 +356,7 @@ public class MapFragment extends Fragment implements
     }
 
     // Check if GooglePlayServices is available
-    public boolean isServiceAvailable() {
+    private boolean isServiceAvailable() {
         int available = GoogleApiAvailability.getInstance().isGooglePlayServicesAvailable(getActivityCast());
         if (available == ConnectionResult.SUCCESS) {
             // Google Play services is working fine and we don't need to do anything.
@@ -373,28 +409,16 @@ public class MapFragment extends Fragment implements
     private void getDeviceCurrentLocation() {
         try {
             if (mPermissionsGranted || Build.VERSION.SDK_INT < 23) {
-                mFusedLocationProviderClient.getLastLocation()
-                        .addOnSuccessListener(getActivityCast(), new OnSuccessListener<android.location.Location>() {
-                            @Override
-                            public void onSuccess(android.location.Location location) {
-                                if (location != null) {
-                                    mBounds.include(new LatLng(location.getLatitude(), location.getLongitude()));
-                                    // Set the new map bounds
-                                    try {
-                                        mMap.moveCamera(CameraUpdateFactory.newLatLngBounds(
-                                                mBounds.build(), mScreenSize[0], mScreenSize[1], 0));
-                                    } catch (NullPointerException e) {
-                                        e.printStackTrace();
-                                    }
-                                } else {
-                                    // Otherwise, show a 'location unknown' toast message
-                                    Toast.makeText(getActivityCast(), getString(R.string.location_unknown), Toast.LENGTH_SHORT).show();
-                                }
-                            }
-                        });
+                mFusedLocationProviderClient.getLastLocation();
             }
         } catch (SecurityException e) {
             e.printStackTrace();
         }
+    }
+
+    // Set the coordinates upon selecting a car from the list
+    public void setMapLocation(LatLng coordinates) {
+        mMapLocationTarget = coordinates;
+        mMapZoom = 19;
     }
 }

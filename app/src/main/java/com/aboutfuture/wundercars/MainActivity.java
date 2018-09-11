@@ -6,12 +6,15 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
 
+import com.aboutfuture.wundercars.view.LocationsFragment;
+import com.aboutfuture.wundercars.view.MapFragment;
 import com.aboutfuture.wundercars.view.SectionsPagerAdapter;
+import com.google.android.gms.maps.model.LatLng;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements LocationsFragment.OnCarClickListener {
 
     @BindView(R.id.main_toolbar)
     Toolbar toolbar;
@@ -38,6 +41,19 @@ public class MainActivity extends AppCompatActivity {
 
         mViewPager.addOnPageChangeListener(new TabLayout.TabLayoutOnPageChangeListener(tabLayout));
         tabLayout.addOnTabSelectedListener(new TabLayout.ViewPagerOnTabSelectedListener(mViewPager));
+    }
 
+    // When user clicked on a car in the list, create a new map fragment, replace the old one
+    // and set map's center to be car's location.
+    @Override
+    public void onCarSelected(LatLng coordinates) {
+        MapFragment mapFragment = new MapFragment();
+        mapFragment.setMapLocation(coordinates);
+        getSupportFragmentManager().beginTransaction()
+                .replace(R.id.map_container, mapFragment)
+                .commit();
+
+        // Switch page to show map
+        mViewPager.setCurrentItem(1);
     }
 }

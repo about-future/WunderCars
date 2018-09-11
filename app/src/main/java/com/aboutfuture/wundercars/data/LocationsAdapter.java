@@ -10,6 +10,7 @@ import android.widget.TextView;
 
 import com.aboutfuture.wundercars.R;
 import com.aboutfuture.wundercars.model.Location;
+import com.google.android.gms.maps.model.LatLng;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,9 +21,11 @@ import butterknife.ButterKnife;
 public class LocationsAdapter extends RecyclerView.Adapter<LocationsAdapter.ViewHolder> {
     private final Context mContext;
     private List<Location> mLocations = new ArrayList<Location>(){};
+    private final ListItemClickListener mOnClickListener;
 
-    public LocationsAdapter(Context context){
+    public LocationsAdapter(Context context, ListItemClickListener listener){
         mContext = context;
+        mOnClickListener = listener;
     }
 
     @NonNull
@@ -49,7 +52,7 @@ public class LocationsAdapter extends RecyclerView.Adapter<LocationsAdapter.View
         return mLocations != null ? mLocations.size() : 0;
     }
 
-    public class ViewHolder extends RecyclerView.ViewHolder {
+    public class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
         @BindView(R.id.car_number)
         TextView carNumberTextView;
         @BindView(R.id.car_address)
@@ -68,7 +71,19 @@ public class LocationsAdapter extends RecyclerView.Adapter<LocationsAdapter.View
         public ViewHolder(View itemView) {
             super(itemView);
             ButterKnife.bind(this, itemView);
+            itemView.setOnClickListener(this);
         }
+
+        @Override
+        public void onClick(View view) {
+            double[] coordinates = mLocations.get(getAdapterPosition()).getCoordinates();
+            mOnClickListener.onItemClickListener(new LatLng(coordinates[1], coordinates[0]));
+        }
+    }
+
+    // Interface needed to pass the location from the adapter to location fragment
+    public interface ListItemClickListener {
+        void onItemClickListener(LatLng location);
     }
 
     public void setLocations(List<Location> locations) {
