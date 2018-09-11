@@ -14,10 +14,6 @@
     <string name="no_internet">No internet connection.\nNo locations, right?</string>
     <string name="no_connection">Connection unavailable</string>
     <string name="no_map_request">Sorry! You can\'t make maps requests.</string>
-    <string name="dialog_title">Permission Needed</string>
-    <string name="dialog_message">This permission is needed, so the app could localize you in relation with the cars.</string>
-    <string name="dialog_ok">OK</string>
-    <string name="dialog_cancel">Cancel</string>
     <string name="location_unknown">Unable to get current location.</string>
 
     <!-- Preferences -->
@@ -25,9 +21,5 @@
 
     <!-- Content Description -->
     <string name="no_connection_icon">No connection icon</string>
-    <string name="car_exterior_icon">Car exterior icon</string>
-    <string name="car_interior_icon">Car interior icon</string>
-    <string name="car_engine_icon">Engine type icon</string>
-    <string name="car_fuel_icon">Fuel amount icon</string>
 
 </resources>

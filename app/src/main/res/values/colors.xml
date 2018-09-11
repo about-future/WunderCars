@@ -5,11 +5,8 @@
     <color name="colorAccent">#06A0E3</color>
 
     <color name="colorWhite">#FFFFFF</color>
-    <color name="colorTouch">#1806A0E3</color>
+    <color name="colorTouch">#18334146</color>
 
     <color name="primaryLightColor">#5D6C71</color>
-    <color name="secondaryLightColor">#64D1FF</color>
-    <color name="secondaryDarkColor">#0072B1</color>
-    <color name="primaryTextColor">#FFFFFF</color>
     <color name="secondaryTextColor">#000000</color>
 </resources>

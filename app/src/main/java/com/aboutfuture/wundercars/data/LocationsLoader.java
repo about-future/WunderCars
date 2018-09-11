@@ -12,8 +12,8 @@ import com.aboutfuture.wundercars.retrofit.ApiClient;
 import com.aboutfuture.wundercars.retrofit.ApiInterface;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import retrofit2.Call;
 
@@ -34,17 +34,16 @@ public class LocationsLoader extends AsyncTaskLoader<List<Location>> {
     @Override
     public List<Location> loadInBackground() {
         ApiInterface placeMarksApiInterface = ApiClient.getClient().create(ApiInterface.class);
-        //Call<List<Location>> call = placeMarksApiInterface.getLocations();
         Call<Placemarks> call = placeMarksApiInterface.getPlacemarks();
 
-        Placemarks result = null;// = new ArrayList<>();
+        Placemarks result = null;
         try {
             result = call.execute().body();
         } catch (IOException e) {
             Log.v("Locations Loader", "Error: " + e.toString());
         }
 
-        return result.getLocations();
+        return Objects.requireNonNull(result).getLocations();
     }
 
     @Override
