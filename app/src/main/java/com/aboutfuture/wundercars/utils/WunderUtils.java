@@ -24,7 +24,7 @@ public class WunderUtils {
     }
 
     // Return the width, height of the screen in dp
-    public static int[] getScreenSize(Context context) {
+    public final static int[] getScreenSize(Context context) {
         DisplayMetrics displayMetrics = new DisplayMetrics();
         WindowManager windowManager = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
         if (windowManager != null) windowManager.getDefaultDisplay().getMetrics(displayMetrics);
